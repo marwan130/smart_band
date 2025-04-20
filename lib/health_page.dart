@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'health_analytics_page.dart';
 import 'signin_page.dart';
 import 'bluetooth_connection_widget.dart';
 
@@ -13,7 +12,7 @@ class HealthPage extends StatefulWidget {
 class HealthPageState extends State<HealthPage> {
   bool isSignedIn = true;
   final String userName = 'Marwan';
-  final String? profilePictureUrl = 'https://www.example.com/profile_picture.jpg';
+  final String? profilePictureUrl = 'https://ui-avatars.com/api/?name=Marwan'; 
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +24,6 @@ class HealthPageState extends State<HealthPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header row with title and add button
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: const [
@@ -35,11 +33,13 @@ class HealthPageState extends State<HealthPage> {
               ),
               const SizedBox(height: 40),
 
-              // Health analytics section
-              const HealthAnalytics(),
+              const HealthAnalytics(
+                heartRate: 72.0, // Example value
+                spo2: 98.0,      // Example value
+                bodyTemp: 36.5,  // Example value
+              ),
               const SizedBox(height: 40),
 
-              // Sign in or profile card
               Center(
                 child: isSignedIn
                     ? SignInCard(
@@ -111,7 +111,7 @@ class AddDeviceButton extends StatelessWidget {
       onTap: () {
         showModalBottomSheet(
           context: context,
-          builder: (context) => BluetoothConnectionWidget(),
+          builder: (context) => const BluetoothConnectionWidget(),
         );
       },
       child: Container(
@@ -131,96 +131,90 @@ class AddDeviceButton extends StatelessWidget {
 }
 
 class HealthAnalytics extends StatelessWidget {
-  const HealthAnalytics({super.key});
+  final double heartRate;
+  final double spo2;
+  final double bodyTemp;
+
+  const HealthAnalytics({
+    super.key,
+    required this.heartRate,
+    required this.spo2,
+    required this.bodyTemp,
+  });
 
   @override
   Widget build(BuildContext context) {
-    const int heartRate = 76;
-    const double bodyTemp = 36.7;
-    const String sleep = '7h 30m';
-
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-
-    final cardWidth = screenWidth * 0.9;
-    final cardHeight = screenHeight * 0.18;
-    final iconSize = screenWidth * 0.07;
-    final fontSize = screenWidth * 0.045;
-    final labelSize = screenWidth * 0.03;
-
-    return Center(
-      child: GestureDetector(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const HealthAnalyticsPage()),
-          );
-        },
-        child: Container(
-          width: cardWidth,
-          height: cardHeight,
-          padding: EdgeInsets.symmetric(
-            vertical: screenHeight * 0.03,
-            horizontal: screenWidth * 0.04,
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1C1B1F),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _buildHealthColumn(
+            icon: Icons.favorite,
+            color: Colors.red,
+            value: '${heartRate.toStringAsFixed(0)} bpm',
+            label: 'Heart Rate',
           ),
-          decoration: BoxDecoration(
-            color: const Color.fromARGB(255, 17, 17, 17),
-            borderRadius: BorderRadius.circular(20),
+          _buildHealthColumn(
+            icon: Icons.bloodtype,
+            color: Colors.blue,
+            value: '${spo2.toStringAsFixed(0)}%',
+            label: 'SpO2',
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _buildHealthColumn(
-                icon: Icons.thermostat,
-                value: '$bodyTemp°C',
-                label: 'Body Temp',
-                color: Colors.orange,
-                fontSize: fontSize,
-                labelSize: labelSize,
-                iconSize: iconSize,
-              ),
-              _buildHealthColumn(
-                icon: Icons.favorite,
-                value: '$heartRate BPM',
-                label: 'Heart Rate',
-                color: Colors.red,
-                fontSize: fontSize,
-                labelSize: labelSize,
-                iconSize: iconSize,
-              ),
-              _buildHealthColumn(
-                icon: Icons.bedtime,
-                value: sleep,
-                label: 'Sleep',
-                color: Colors.blue,
-                fontSize: fontSize,
-                labelSize: labelSize,
-                iconSize: iconSize,
-              ),
-            ],
+          _buildHealthColumn(
+            icon: Icons.thermostat,
+            color: Colors.orange,
+            value: '${bodyTemp.toStringAsFixed(1)}°C',
+            label: 'Body Temp',
           ),
-        ),
+        ],
       ),
     );
   }
 
-  Column _buildHealthColumn({
+  Widget _buildHealthColumn({
     required IconData icon,
+    required Color color,
     required String value,
     required String label,
-    required Color color,
-    required double fontSize,
-    required double labelSize,
-    required double iconSize,
   }) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(icon, color: color, size: iconSize),
-        const SizedBox(height: 4),
-        Text(value, style: TextStyle(color: Colors.white, fontSize: fontSize)),
-        Text(label, style: TextStyle(color: Colors.white54, fontSize: labelSize)),
-      ],
+    const double iconSize = 40;
+    const double fontSize = 24;
+    const double labelSize = 14;
+
+    return Flexible(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: color, size: iconSize),
+          const SizedBox(height: 4),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              value,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: fontSize,
+              ),
+            ),
+          ),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white54,
+                fontSize: labelSize,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -229,7 +223,11 @@ class SignInCard extends StatelessWidget {
   final String? userName;
   final String? profilePictureUrl;
 
-  const SignInCard({super.key, this.userName, this.profilePictureUrl});
+  const SignInCard({
+    super.key,
+    this.userName,
+    this.profilePictureUrl,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -237,7 +235,7 @@ class SignInCard extends StatelessWidget {
     final screenHeight = MediaQuery.of(context).size.height;
 
     final cardWidth = screenWidth * 0.9;
-    final cardHeight = screenHeight * 0.07;
+    final cardHeight = screenHeight * 0.1 > 70 ? 70.0 : screenHeight * 0.1;
     final fontSize = screenWidth * 0.035;
 
     return GestureDetector(
@@ -260,11 +258,14 @@ class SignInCard extends StatelessWidget {
             CircleAvatar(
               radius: screenWidth * 0.05,
               backgroundColor: Colors.grey[800],
-              backgroundImage: profilePictureUrl != null
+              backgroundImage: (profilePictureUrl != null &&
+                      profilePictureUrl!.startsWith('http'))
                   ? NetworkImage(profilePictureUrl!)
                   : null,
-              child: profilePictureUrl == null
-                  ? Icon(Icons.account_circle, color: Colors.white, size: screenWidth * 0.07)
+              child: (profilePictureUrl == null ||
+                      !profilePictureUrl!.startsWith('http'))
+                  ? Icon(Icons.account_circle,
+                      color: Colors.white, size: screenWidth * 0.07)
                   : null,
             ),
             const SizedBox(width: 16),
